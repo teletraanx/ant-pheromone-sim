@@ -6,7 +6,6 @@ public class FoodPile : MonoBehaviour
 {
     public int amount = 20;
 
-    // Spawner subscribes to this
     public Action<FoodPile> OnDepleted;
 
     public bool Take(int n = 1)

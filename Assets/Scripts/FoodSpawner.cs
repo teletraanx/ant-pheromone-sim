@@ -23,8 +23,8 @@ public class FoodSpawner : MonoBehaviour
 
     [Header("Optional: clear pheromone when pile is eaten")]
     public bool clearOnDepleted = true;    // Requires foodField.ClearArea(...)
-    public PheromoneField foodField;       // Your scene FoodField (drag here if clearing)
-    public float clearRadius = 2f;         // World meters to wipe around the pile
+    public PheromoneField foodField;       
+    public float clearRadius = 2f;         
 
     private readonly List<FoodPile> active = new();
 
@@ -47,7 +47,6 @@ public class FoodSpawner : MonoBehaviour
 
         Vector3 origin = center ? center.position : transform.position;
 
-        // Try several random candidates until we find a walkable point
         for (int tries = 0; tries < 24; tries++)
         {
             Vector2 r = Random.insideUnitCircle * spawnRadius;
@@ -77,14 +76,13 @@ public class FoodSpawner : MonoBehaviour
 
     private void HandleDepleted(FoodPile pile)
     {
-        // Optional: wipe pheromone near the eaten pile
         if (clearOnDepleted && foodField)
         {
-            // Requires a ClearArea(Vector3 worldPos, float radius) method on your PheromoneField
+            // Requires a ClearArea(Vector3 worldPos, float radius) method on PheromoneField
             foodField.ClearArea(pile.transform.position, clearRadius);
         }
 
-        pile.OnDepleted -= HandleDepleted; // tidy
+        pile.OnDepleted -= HandleDepleted; 
         active.Remove(pile);
 
         StartCoroutine(RespawnAfterDelay(respawnDelay));

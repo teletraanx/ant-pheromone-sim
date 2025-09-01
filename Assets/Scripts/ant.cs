@@ -10,16 +10,16 @@ public class ant : MonoBehaviour
     private float timer;
 
     // Pheromones
-    public PheromoneField homeField;   // drag your Home field here
-    public PheromoneField foodField;   // drag your Food field here
+    public PheromoneField homeField;   
+    public PheromoneField foodField;   
 
     [Header("Pheromone Params")]
-    public float depositRate = 5f;     // units/sec (only while carrying)
+    public float depositRate = 5f;     
 
     [Header("Sniffing")]
     public float sensorDistance = 0.8f;
     public float sensorAngle = 30f;
-    public float lookahead = 3f;       // meters toward the winning direction
+    public float lookahead = 3f;       
     public float scentThreshold = 0.01f;
 
     [Header("Sniff cadence")]
@@ -38,7 +38,7 @@ public class ant : MonoBehaviour
 
     void Update()
     {
-        // periodic scent check to opportunistically nudge destination
+        // periodic scent check to nudge destination
         sniffTimer += Time.deltaTime;
         if (sniffTimer >= sniffInterval)
         {
@@ -48,7 +48,7 @@ public class ant : MonoBehaviour
             sniffTimer = 0f;
         }
 
-        // wander cycle or path complete → pick a new destination
+        // wander cycle or path complete 
         timer += Time.deltaTime;
         bool reached = !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance;
 
@@ -65,7 +65,7 @@ public class ant : MonoBehaviour
 
     private void PickNewDestination()
     {
-        // 1) try following the right scent (Food when searching, Home when carrying)
+        // try following the right scent (Food when searching, Home when carrying)
         var sniff = carrying ? homeField : foodField;
         Vector3? scentGoal = GetScentBiasedGoal(sniff);
         if (scentGoal.HasValue)
@@ -74,14 +74,14 @@ public class ant : MonoBehaviour
             return;
         }
 
-        // 2) if carrying but no gradient, head to nest as a fallback
+        // if carrying but no gradient, head to nest as a fallback
         if (carrying && nest != null)
         {
             agent.SetDestination(nest.position);
             return;
         }
 
-        // 3) otherwise, random wander on the NavMesh
+        // otherwise, random wander on the NavMesh
         Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, NavMesh.AllAreas);
         agent.SetDestination(newPos);
     }
@@ -112,7 +112,6 @@ public class ant : MonoBehaviour
         float max = Mathf.Max(sF, Mathf.Max(sL, sR));
         if (max < scentThreshold) return null;
 
-        // require the winner to beat the runner-up by a small margin
         float mid = (sF + sL + sR - max) - Mathf.Min(sF, Mathf.Min(sL, sR));
         if (max - mid < 0.005f) return null;
 
@@ -130,7 +129,7 @@ public class ant : MonoBehaviour
         {
             var pile = other.GetComponent<FoodPile>();
             if (pile != null && pile.Take(1))
-                carrying = true; // picked up food → start depositing + bias to home
+                carrying = true; 
         }
         else if (carrying && other.CompareTag("Nest"))
         {

@@ -1,6 +1,6 @@
 ﻿// PheromoneField.cs
 // Attach to a Quad lying on the XZ plane. Use two copies: Home (blue) and Food (green).
-// Tip: Rotate X = 90° (faces up). If you use +90°, set the material to Two-Sided so it renders.
+// Rotate X = 90° (faces up)
 
 using UnityEngine;
 
@@ -20,22 +20,22 @@ public class PheromoneField : MonoBehaviour
 
     [Header("Rendering")]
     public Material fieldMaterial;           // Unlit/Transparent (URP: Universal Render Pipeline/Unlit, Transparent)
-    public Color tint = Color.green;         // set blue for Home, green for Food
-    public float displayScale = 5f;          // value -> brightness
+    public Color tint = Color.green;         
+    public float displayScale = 5f;          
     public int updateEveryNFrames = 2;
 
     // --- internals ---
-    float[,] a, b;                           // ping-pong buffers (active = a)
+    float[,] a, b;                           
     Texture2D tex;
     MeshRenderer mr;
-    Material mat;                            // the material we actually write the texture to
+    Material mat;                            
     Color[] pixels;
 
     void Awake()
     {
         mr = GetComponent<MeshRenderer>();
         InitIfNeeded();
-        SetupRendererMaterial();             // make sure we have a proper material instance & texture binding
+        SetupRendererMaterial();             
     }
 
     void OnValidate()
@@ -53,7 +53,6 @@ public class PheromoneField : MonoBehaviour
         if (Time.frameCount % Mathf.Max(1, updateEveryNFrames) == 0) UpdateTexture();
     }
 
-    // --- public API ---
     public void Deposit(Vector3 worldPos, float amount)
     {
         var (x, y) = WorldToGrid(worldPos);
@@ -73,12 +72,12 @@ public class PheromoneField : MonoBehaviour
         UpdateTexture();
     }
 
-    // Wipes a circular/elliptical area of scent (used when food is eaten)
+    // Wipes a circular/elliptical area of scent (when food is eaten)
     public void ClearArea(Vector3 worldPos, float radius)
     {
         var (cx, cy) = WorldToGrid(worldPos);
-        float radX = radius * width / worldSize;   // world meters -> grid cells (X)
-        float radY = radius * height / worldSize;   // world meters -> grid cells (Z)
+        float radX = radius * width / worldSize;   
+        float radY = radius * height / worldSize;   
         int minX = Mathf.Max(0, Mathf.FloorToInt(cx - radX));
         int maxX = Mathf.Min(width - 1, Mathf.CeilToInt(cx + radX));
         int minY = Mathf.Max(0, Mathf.FloorToInt(cy - radY));
@@ -95,7 +94,6 @@ public class PheromoneField : MonoBehaviour
             }
     }
 
-    // --- internals ---
     void InitIfNeeded()
     {
         width = Mathf.Max(2, width);
@@ -117,13 +115,12 @@ public class PheromoneField : MonoBehaviour
         if (autoAlignToXZ)
         {
             transform.localScale = new Vector3(worldSize, worldSize, 1f);
-            var e = transform.eulerAngles; e.x = 90f; transform.eulerAngles = e; // face up
+            var e = transform.eulerAngles; e.x = 90f; transform.eulerAngles = e; 
         }
     }
 
     void SetupRendererMaterial()
     {
-        // Create a fallback material if none provided
         if (!fieldMaterial)
         {
             var shader = Shader.Find("Universal Render Pipeline/Unlit");
@@ -131,11 +128,8 @@ public class PheromoneField : MonoBehaviour
             fieldMaterial = new Material(shader) { renderQueue = 3000 }; // Transparent
         }
 
-        // In play mode, use a per-renderer instance to avoid both fields sharing the same texture.
-        // In edit mode, use sharedMaterial to avoid leaks.
         if (Application.isPlaying)
         {
-            // If the renderer's current material equals the shared template, make a fresh instance
             if (mr.material == null || mr.material == mr.sharedMaterial)
                 mr.material = new Material(fieldMaterial);
             mat = mr.material;
@@ -146,11 +140,10 @@ public class PheromoneField : MonoBehaviour
             mat = mr.sharedMaterial;
         }
 
-        // Bind the texture to the proper slot
         if (mat != null)
         {
-            if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", tex);   // URP
-            else mat.mainTexture = tex;               // Built-in
+            if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", tex);   
+            else mat.mainTexture = tex;              
         }
     }
 
@@ -178,11 +171,9 @@ public class PheromoneField : MonoBehaviour
                 b[x, y] = next > 0f ? next : 0f;
             }
 
-        // simple edge copy
         for (int x = 0; x < width; x++) { b[x, 0] = a[x, 0]; b[x, height - 1] = a[x, height - 1]; }
         for (int y = 0; y < height; y++) { b[0, y] = a[0, y]; b[width - 1, y] = a[width - 1, y]; }
 
-        // swap
         var t = a; a = b; b = t;
     }
 
@@ -193,7 +184,7 @@ public class PheromoneField : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 float v = Mathf.Clamp01(a[x, y] * displayScale);
-                pixels[i++] = new Color(tint.r * v, tint.g * v, tint.b * v, v); // alpha = intensity
+                pixels[i++] = new Color(tint.r * v, tint.g * v, tint.b * v, v); 
             }
         tex.SetPixels(pixels);
         tex.Apply(false, false);
